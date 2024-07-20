@@ -1,5 +1,7 @@
 package layout
 
+import "dream-picture-ai/view/ui"
+
 templ App(nav bool) {
 	<!DOCTYPE html>
 	<html lang="en" data-theme="dark">
@@ -11,10 +13,11 @@ templ App(nav bool) {
 			<link rel="stylesheet" href="/public/styles.css"/>
 			<script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"/>
 			<script src="https://unpkg.com/htmx.org@2.0.1" defer/>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/js/all.min.js"></script>
 		</head>
 		<body class="antialiased">
 			if nav {
-				navigation
+				@ui.Navigation()
 			}
 			{ children... }
 		</body>
