@@ -1,0 +1,22 @@
+package layout
+
+templ App(nav bool) {
+	<!DOCTYPE html>
+	<html lang="en" data-theme="dark">
+		<head>
+			<title>Dream Picture AI</title>
+			// <link rel="icon" type="image/x-icon" href="/public/favicon.ico"/>
+			<meta charset="UTF-8" />
+			<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+			<link rel="stylesheet" href="/public/styles.css"/>
+			<script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"/>
+			<script src="https://unpkg.com/htmx.org@2.0.1" defer/>
+		</head>
+		<body class="antialiased">
+			if nav {
+				navigation
+			}
+			{ children... }
+		</body>
+	</html>
+}
