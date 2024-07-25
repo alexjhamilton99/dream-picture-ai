@@ -119,13 +119,15 @@ templ LoginForm(creds supabase.UserCredentials, errors LoginErrors) {
       <div class="text-sm text-error">{errors.InvalidCredentials}</div>
     }
     <button type="submit" class="btn btn-primary w-full">Login <i class="fa-solid fa-arrow-right"></i></button>
+    <div class="divider">OK</div>
+    <a href="/login/providers/google" class="btn btn-outline w-full">Login with Google<i class="fa-brands fa-google"></i></a>
   </form> 
 }
 
-// templ CallbackScript() {
-  // <script>
-    // var url = window.location.href;
-    // var newURL = url.replace('#', '?');
-    // window.location = newURL;
-  // </script>
-// }
+templ CallbackScript() {
+  <script>
+    var url = window.location.href;
+    var newURL = url.replace('#', '?');
+    window.location = newURL;
+  </script>
+}

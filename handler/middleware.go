@@ -5,7 +5,10 @@ import (
 	"dream-picture-ai/pkg/sb"
 	"dream-picture-ai/types"
 	"net/http"
+	"os"
 	"strings"
+
+	"github.com/gorilla/sessions"
 )
 
 func WithAuth(next http.Handler) http.Handler {
@@ -32,12 +35,18 @@ func WithUser(next http.Handler) http.Handler {
 			next.ServeHTTP(w, r)
 			return
 		}
-		accessTokenCookie, err := r.Cookie("at")
+		store := sessions.NewCookieStore([]byte(os.Getenv("SESSION_SECRET")))
+		session, err := store.Get(r, sessionUserKey)
 		if err != nil {
 			next.ServeHTTP(w, r)
 			return
 		}
-		resp, err := sb.Client.Auth.User(r.Context(), accessTokenCookie.Value)
+		accessToken := session.Values[sessionAccessTokenKey]
+		if accessToken == nil {
+			next.ServeHTTP(w, r)
+			return
+		}
+		resp, err := sb.Client.Auth.User(r.Context(), accessToken.(string))
 		if err != nil {
 			next.ServeHTTP(w, r)
 			return
