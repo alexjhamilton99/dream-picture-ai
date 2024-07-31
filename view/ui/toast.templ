@@ -1,0 +1,14 @@
+package ui
+
+templ Toast(msg string) {
+  <div id="toast" class="toast toast-top toast-end">
+    <div class="alert alert-success">
+      <span>{msg}</span>
+    </div>
+  </div>
+  <script>
+    setTimeout(function () {
+      $('#toast').fadeOut(250);
+    }, 2000);
+  </script>
+}

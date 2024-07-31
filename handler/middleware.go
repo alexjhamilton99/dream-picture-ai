@@ -76,9 +76,10 @@ func WithUser(next http.Handler) http.Handler {
 			return
 		}
 		user := types.AuthenticatedUser{
-			ID:       uuid.MustParse(resp.ID),
-			Email:    resp.Email,
-			LoggedIn: true,
+			ID:          uuid.MustParse(resp.ID),
+			Email:       resp.Email,
+			LoggedIn:    true,
+			AccessToken: accessToken.(string),
 		}
 		ctx := context.WithValue(r.Context(), types.UserContextKey, user)
 		next.ServeHTTP(w, r.WithContext(ctx))
