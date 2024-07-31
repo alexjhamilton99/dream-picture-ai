@@ -1,9 +1,15 @@
 package handler
 
 import (
+	"bytes"
+	"dream-picture-ai/db"
 	"dream-picture-ai/pkg/kit/validate"
 	"dream-picture-ai/pkg/sb"
+	"dream-picture-ai/types"
 	"dream-picture-ai/view/auth"
+	"encoding/json"
+	"fmt"
+	"io"
 	"os"
 
 	"log/slog"
@@ -17,6 +23,77 @@ const (
 	sessionUserKey        = "user"
 	sessionAccessTokenKey = "accessToken"
 )
+
+func HandleResetPasswordIndex(w http.ResponseWriter, r *http.Request) error {
+	return render(r, w, auth.ResetPassword())
+}
+
+func HandleResetPasswordCreate(w http.ResponseWriter, r *http.Request) error {
+	user := getAuthenticatedUser(r)
+	params := map[string]any{
+		"email":      user.Email,
+		"redirectTo": "http://localhost:3000/auth/reset-password",
+	}
+	b, err := json.Marshal(params)
+	if err != nil {
+		return err
+	}
+	req, err := http.NewRequest("POST", fmt.Sprintf("%s", sb.BaseAuthURL), bytes.NewReader(b))
+	req.Header.Set("apiKey", os.Getenv("SUPABASE_SECRET"))
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return err
+	}
+	if resp.StatusCode != http.StatusOK {
+		b, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return err
+		}
+		return fmt.Errorf("Supabase password recovery responded with a non 200 status code: %d\n\n%s\n", resp.StatusCode, string(b))
+	}
+	return render(r, w, auth.ResetPasswordInitiated(user.Email))
+}
+
+func HandleResetPasswordUpdate(w http.ResponseWriter, r *http.Request) error {
+	user := getAuthenticatedUser(r)
+	params := map[string]any{
+		"password": r.FormValue("password"),
+	}
+	_, err := sb.Client.Auth.UpdateUser(r.Context(), user.AccessToken, params)
+	errors := auth.ResetPasswordErrors{
+		NewPassword: "Please enter a valid password",
+	}
+	if err != nil {
+		return render(r, w, auth.ResetPasswordForm(errors))
+	}
+	return hxRedirect(w, r, "/")
+}
+
+func HandleAccountSetupIndex(w http.ResponseWriter, r *http.Request) error {
+	return render(r, w, auth.AccountSetup())
+}
+
+func HandleAccountSetupCreate(w http.ResponseWriter, r *http.Request) error {
+	params := auth.AccountSetupParams{
+		Username: r.FormValue("username"),
+	}
+	var errors auth.AccountSetupErrors
+	ok := validate.New(&params, validate.Fields{
+		"Username": validate.Rules(validate.Min(2), validate.Max(50)),
+	}).Validate(&errors)
+	if !ok {
+		return render(r, w, auth.AccountSetupForm(params, errors))
+	}
+	user := getAuthenticatedUser(r)
+	account := types.Account{
+		UserID:   user.ID,
+		Username: params.Username,
+	}
+	if err := db.CreateAccount(&account); err != nil {
+		return nil
+	}
+	return hxRedirect(w, r, "/")
+}
 
 func HandleLoginIndex(w http.ResponseWriter, r *http.Request) error {
 	return render(r, w, auth.Login())

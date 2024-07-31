@@ -33,6 +33,26 @@ func WithAuth(next http.Handler) http.Handler {
 	return http.HandlerFunc(fn)
 }
 
+func WithAccountSetup(next http.Handler) http.Handler {
+	fn := func(w http.ResponseWriter, r *http.Request) {
+		user := getAuthenticatedUser(r)
+		account, err := db.GetAccountByUserID(user.ID)
+		// check if user setup his account
+		if err != nil {
+			if errors.Is(err, sql.ErrNoRows) {
+				http.Redirect(w, r, "/account/setup", http.StatusSeeOther)
+				return
+			}
+			next.ServeHTTP(w, r)
+			return
+		}
+		user.Account = account
+		ctx := context.WithValue(r.Context(), types.UserContextKey, user)
+		next.ServeHTTP(w, r.WithContext(ctx))
+	}
+	return http.HandlerFunc(fn)
+}
+
 func WithUser(next http.Handler) http.Handler {
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		if strings.Contains(r.URL.Path, "/public") {
@@ -56,16 +76,11 @@ func WithUser(next http.Handler) http.Handler {
 			return
 		}
 		user := types.AuthenticatedUser{
-			ID:       uuid.MustParse(resp.ID),
-			Email:    resp.Email,
-			LoggedIn: true,
+			ID:          uuid.MustParse(resp.ID),
+			Email:       resp.Email,
+			LoggedIn:    true,
+			AccessToken: accessToken.(string),
 		}
-		account, err := db.GetAccountByUserID(user.ID)
-		if !errors.Is(err, sql.ErrNoRows) {
-			next.ServeHTTP(w, r)
-			return
-		}
-		user.Account = account
 		ctx := context.WithValue(r.Context(), types.UserContextKey, user)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	}

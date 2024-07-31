@@ -6,6 +6,43 @@ import (
 	"github.com/nedpals/supabase-go"
 )
 
+templ AccountSetup() {
+  @layout.App(true) {
+    <div class="max-w-xl bg-base-300 px-6 py-12 w-full mx-auto mt-4 rounded-xl">
+      <h1 class="text-xl font-black mb-8 text-center">Setup your account</h1>
+      @AccountSetupForm(AccountSetupParams{}, AccountSetupErrors{})
+    </div>
+  }
+}
+
+type AccountSetupErrors struct {
+  Username string
+}
+
+type AccountSetupParams struct {
+  Username string
+}
+
+templ AccountSetupForm(params AccountSetupParams, errors AccountSetupErrors) {
+  <form
+    hx-post="/account/setup"
+    hx-swap="outerHTML"
+  >
+    <label class="form-control w-full max-w-xs">
+      <div class="label">
+        <span class="label-text">Enter your Username</span>
+      </div>
+      <input class="input input-bordered" name="username" />
+      <div class="label">
+        if len(errors.Username) > 0 {
+          <span class="label-text text-error">{errors.Username}</span>
+        }
+      </div>
+    </label>
+    <button class="btn btn-primary">Setup Account <i class="fa-solid fa-arrow-right"></i></button>
+  </form>
+}
+
 templ Login() {
   @layout.App(false) {
     <div class="flex justify-center mt-[calc(100vh-100vh+8rem)]">
@@ -122,6 +159,51 @@ templ LoginForm(creds supabase.UserCredentials, errors LoginErrors) {
     <div class="divider">OK</div>
     <a href="/login/providers/google" class="btn btn-outline w-full">Login with Google<i class="fa-brands fa-google"></i></a>
   </form> 
+}
+
+type ResetPasswordParams struct {
+  NewPassword string
+}
+
+type ResetPasswordErrors struct {
+  NewPassword string
+}
+
+templ ResetPasswordInitiated(email string) {
+  <div>A password reset link is being sent to <span class="text-info font-semibold">{email}</span></div>
+}
+
+templ ResetPasswordForm(errors ResetPasswordErrors) {
+  <form
+    hx-put="/settings/account/reset-password"
+    hx-swap="outerHTML"
+  >
+    <div class="mb-4">
+      <input
+        class="input input-bordered w-full max-w-sm"
+        name="password"
+        type="password"
+      />
+      if len(errors.NewPassword) > 0 {
+        <div class="text-sm text-error mt-1">{errors.NewPassword}</div>
+      }
+      </div>
+    <button class="btn btn-primary">Update Password</button>
+  </form>
+}
+
+templ ResetPassword() {
+  @layout.App(false) {
+    <div class="max-w-2xl w-full mx-auto mt-8">
+      <div>
+        <h1 class="text-lg font-semibold border-b border-gray-700 pb-2">Reset Password</h1>
+        <div class="py-6">
+          <div class="text-label mb-2">Enter New Password</div>
+          @ResetPasswordForm(ResetPasswordErrors{})
+        </div>
+      </div>
+    </div>
+  }
 }
 
 templ CallbackScript() {
