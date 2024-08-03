@@ -34,6 +34,7 @@ func main() {
 	router.Post("/logout", handler.Make(handler.HandleLogoutCreate))
 	router.Post("/sign-up", handler.Make(handler.HandleSignUpCreate))
 	router.Get("/auth/callback", handler.Make(handler.HandleAuthCallback))
+	router.Post("/replicate/callback/{userID}/{batchID}", handler.Make(handler.HandleReplicateCallback))
 
 	router.Group(func(auth chi.Router) {
 		auth.Use(handler.WithAuth)
