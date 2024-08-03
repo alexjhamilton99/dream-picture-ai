@@ -1,0 +1,2 @@
+<div id=\"toast\" class=\"toast toast-top toast-end\"><div class=\"alert alert-success\"><span>
+</span></div></div><script>\r\n    setTimeout(function () {\r\n      $('#toast').fadeOut(250);\r\n    }, 2000);\r\n  </script>
